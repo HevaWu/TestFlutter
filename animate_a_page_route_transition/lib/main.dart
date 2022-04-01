@@ -32,11 +32,12 @@ Route _createRoute() {
       const begin = Offset(0.0, 1.0);
       const end = Offset.zero;
       var curve = Curves.ease;
-      final tween =
-          Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+      final tween = Tween(begin: begin, end: end);
+      final curvedAnimation = CurvedAnimation(parent: animation, curve: curve);
 
       return SlideTransition(
-        position: animation.drive(tween),
+        position: tween.animate(curvedAnimation),
         child: child,
       );
     },
