@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -36,6 +37,7 @@ enum DownloadStatus {
   downloaded,
 }
 
+@immutable
 class DownloadButton extends StatelessWidget {
   const DownloadButton({
     Key? key,
@@ -48,9 +50,61 @@ class DownloadButton extends StatelessWidget {
   final DownloadStatus status;
   final Duration transitionDuration;
 
+  bool get _isDownloading => status == DownloadStatus.downloading;
+  bool get _isFetching => status == DownloadStatus.fetchingDownload;
+  bool get _isDownloaded => status == DownloadStatus.downloaded;
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return ButtonShapeWidget(
+        isDownloading: _isDownloading,
+        isDownloaded: _isDownloaded,
+        isFetching: _isFetching,
+        transitionDuration: transitionDuration);
+  }
+}
+
+@immutable
+class ButtonShapeWidget extends StatelessWidget {
+  const ButtonShapeWidget(
+      {Key? key,
+      required this.isDownloading,
+      required this.isDownloaded,
+      required this.isFetching,
+      required this.transitionDuration})
+      : super(key: key);
+
+  final bool isDownloading;
+  final bool isDownloaded;
+  final bool isFetching;
+  final Duration transitionDuration;
+
+  @override
+  Widget build(BuildContext context) {
+    var shape = const ShapeDecoration(
+      shape: StadiumBorder(),
+      color: CupertinoColors.lightBackgroundGray,
+    );
+
+    if (isDownloading || isFetching) {
+      // transparent circle, when status change to download,
+      // container needs to animate from rounded rectangle to circle,
+      // then fade out
+      // define begin shape is rounded rectangle, ending shape of circle,
+      // final circle don't visible, so make it transparent
+      shape = ShapeDecoration(
+        shape: const CircleBorder(),
+        color: Colors.white.withOpacity(0.0),
+      );
+    }
+
+    return AnimatedContainer(
+      duration: transitionDuration,
+      curve: Curves.ease,
+      width: double.infinity,
+      decoration: shape,
+      child: const SizedBox(),
+    );
   }
 }
 
