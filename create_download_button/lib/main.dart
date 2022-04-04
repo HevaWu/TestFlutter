@@ -43,6 +43,9 @@ class DownloadButton extends StatelessWidget {
     Key? key,
     required this.status,
     this.downloadProgress = 0.0,
+    required this.onDownload,
+    required this.onCancel,
+    required this.onOpen,
     this.transitionDuration = const Duration(
       microseconds: 500,
     ),
@@ -50,48 +53,68 @@ class DownloadButton extends StatelessWidget {
 
   final DownloadStatus status;
   final double downloadProgress;
+  final VoidCallback onDownload;
+  final VoidCallback onCancel;
+  final VoidCallback onOpen;
   final Duration transitionDuration;
 
   bool get _isDownloading => status == DownloadStatus.downloading;
   bool get _isFetching => status == DownloadStatus.fetchingDownload;
   bool get _isDownloaded => status == DownloadStatus.downloaded;
 
+  void _onPressed() {
+    switch (status) {
+      case DownloadStatus.notDownloaded:
+        onDownload();
+        break;
+      case DownloadStatus.fetchingDownload:
+        break;
+      case DownloadStatus.downloading:
+        onCancel();
+        break;
+      case DownloadStatus.downloaded:
+        onOpen();
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+        onTap: _onPressed,
         child: Stack(
-      children: [
-        ButtonShapeWidget(
-          isDownloading: _isDownloading,
-          isDownloaded: _isDownloaded,
-          isFetching: _isFetching,
-          transitionDuration: transitionDuration,
-        ),
-        Positioned.fill(
-          child: AnimatedOpacity(
-            duration: transitionDuration,
-            opacity: _isDownloading || _isFetching ? 1.0 : 0.0,
-            curve: Curves.ease,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                ProgressIndicatorWidget(
-                  downloadProgress: downloadProgress,
-                  isDownloading: _isDownloading,
-                  isFetching: _isFetching,
-                ),
-                if (_isDownloading)
-                  const Icon(
-                    Icons.stop,
-                    size: 14.0,
-                    color: CupertinoColors.activeBlue,
-                  ),
-              ],
+          children: [
+            ButtonShapeWidget(
+              isDownloading: _isDownloading,
+              isDownloaded: _isDownloaded,
+              isFetching: _isFetching,
+              transitionDuration: transitionDuration,
             ),
-          ),
-        ),
-      ],
-    ));
+            Positioned.fill(
+              child: AnimatedOpacity(
+                duration: transitionDuration,
+                opacity: _isDownloading || _isFetching ? 1.0 : 0.0,
+                curve: Curves.ease,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    ProgressIndicatorWidget(
+                      downloadProgress: downloadProgress,
+                      isDownloading: _isDownloading,
+                      isFetching: _isFetching,
+                    ),
+                    if (_isDownloading)
+                      const Icon(
+                        Icons.stop,
+                        size: 14.0,
+                        color: CupertinoColors.activeBlue,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ));
   }
 }
 
