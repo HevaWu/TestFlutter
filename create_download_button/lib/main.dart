@@ -57,22 +57,23 @@ class DownloadButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ButtonShapeWidget(
-        isDownloading: _isDownloading,
-        isDownloaded: _isDownloaded,
-        isFetching: _isFetching,
-        transitionDuration: transitionDuration);
+      isDownloading: _isDownloading,
+      isDownloaded: _isDownloaded,
+      isFetching: _isFetching,
+      transitionDuration: transitionDuration,
+    );
   }
 }
 
 @immutable
 class ButtonShapeWidget extends StatelessWidget {
-  const ButtonShapeWidget(
-      {Key? key,
-      required this.isDownloading,
-      required this.isDownloaded,
-      required this.isFetching,
-      required this.transitionDuration})
-      : super(key: key);
+  const ButtonShapeWidget({
+    Key? key,
+    required this.isDownloading,
+    required this.isDownloaded,
+    required this.isFetching,
+    required this.transitionDuration,
+  }) : super(key: key);
 
   final bool isDownloading;
   final bool isDownloaded;
@@ -103,7 +104,22 @@ class ButtonShapeWidget extends StatelessWidget {
       curve: Curves.ease,
       width: double.infinity,
       decoration: shape,
-      child: const SizedBox(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: AnimatedOpacity(
+          duration: transitionDuration,
+          opacity: isDownloading || isFetching ? 0.0 : 1.0,
+          curve: Curves.ease,
+          child: Text(
+            isDownloaded ? 'OPEN' : 'GET',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.button?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: CupertinoColors.activeBlue,
+                ),
+          ),
+        ),
+      ),
     );
   }
 }
