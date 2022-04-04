@@ -39,8 +39,18 @@ class OrientationList extends StatelessWidget {
       appBar: AppBar(title: Text(title)),
       body: OrientationBuilder(
         builder: (context, orientation) {
+          // create grid with 2 cols in portrait mode, or 3 cols in landscape mode
           return GridView.count(
-              crossAxisCount: orientation == Orientation.portrait ? 2 : 3);
+            crossAxisCount: orientation == Orientation.portrait ? 2 : 3,
+            children: List.generate(100, (index) {
+              return Center(
+                child: Text(
+                  'Item $index',
+                  style: Theme.of(context).textTheme.headline3,
+                ),
+              );
+            }),
+          );
         },
       ),
     );
