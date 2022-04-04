@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(),
     );
   }
 }
@@ -215,35 +215,33 @@ class ButtonShapeWidget extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  late final List<DownloadController> _downloadControllers;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+
+    _downloadControllers = List<DownloadController>.generate(
+      20,
+      (index) => SimulateDownloadController(onOpenDownload: () {
+        _onOpenDownload(index);
+      }),
+    );
+  }
+
+  void _onOpenDownload(int index) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Open App ${index + 1}'),
+      ),
+    );
   }
 
   @override
@@ -258,43 +256,146 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('Download Button'),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+      body: ListView.separated(
+          itemBuilder: _buildListItem,
+          separatorBuilder: (_, __) => const Divider(),
+          itemCount: _downloadControllers.length),
+    );
+  }
+
+  Widget _buildListItem(BuildContext context, int index) {
+    final theme = Theme.of(context);
+    final downloadController = _downloadControllers[index];
+
+    return ListTile(
+      leading: const Icon(Icons.heart_broken),
+      title: Text(
+        'App ${index + 1}',
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.headline6,
+      ),
+      subtitle: Text(
+        'Lorem ipsum dolor #${index + 1}',
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.caption,
+      ),
+      trailing: SizedBox(
+        width: 96,
+        child: AnimatedBuilder(
+          animation: downloadController,
+          builder: (context, child) {
+            return DownloadButton(
+              status: downloadController.downloadStatus,
+              downloadProgress: downloadController.progress,
+              onDownload: downloadController.startDownload,
+              onCancel: downloadController.stopDownload,
+              onOpen: downloadController.openDownload,
+            );
+          },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+}
+
+abstract class DownloadController implements ChangeNotifier {
+  DownloadStatus get downloadStatus;
+  double get progress;
+
+  void startDownload();
+  void stopDownload();
+  void openDownload();
+}
+
+class SimulateDownloadController extends DownloadController
+    with ChangeNotifier {
+  SimulateDownloadController({
+    DownloadStatus downloadStatus = DownloadStatus.notDownloaded,
+    double progress = 0.0,
+    required VoidCallback onOpenDownload,
+  })  : _downloadStatus = downloadStatus,
+        _progress = progress,
+        _onOpenDownload = onOpenDownload;
+
+  DownloadStatus _downloadStatus;
+  @override
+  DownloadStatus get downloadStatus => _downloadStatus;
+
+  double _progress;
+  @override
+  double get progress => _progress;
+
+  final VoidCallback _onOpenDownload;
+
+  bool _isDownloading = false;
+
+  @override
+  void startDownload() {
+    if (downloadStatus == DownloadStatus.notDownloaded) {
+      _doSimulatedDownload();
+    }
+  }
+
+  @override
+  void stopDownload() {
+    if (_isDownloading) {
+      _isDownloading = false;
+      _downloadStatus = DownloadStatus.notDownloaded;
+      _progress = 0.0;
+      notifyListeners();
+    }
+  }
+
+  @override
+  void openDownload() {
+    if (downloadStatus == DownloadStatus.downloaded) {
+      _onOpenDownload();
+    }
+  }
+
+  Future<void> _doSimulatedDownload() async {
+    _isDownloading = true;
+    _downloadStatus = DownloadStatus.fetchingDownload;
+    notifyListeners();
+
+    // wait a second to simualte fetch time
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    // if user chose to cancel the download, stop
+    if (!_isDownloading) {
+      return;
+    }
+
+    // shift to downloading phase
+    _downloadStatus = DownloadStatus.downloading;
+    notifyListeners();
+
+    const downloadProgressStops = [0.0, 0.15, 0.45, 0.8, 1.0];
+    for (final stop in downloadProgressStops) {
+      // wait 1s to simulate varying download speeds
+      await Future<void>.delayed(const Duration(seconds: 1));
+
+      // if user cancel download, stop
+      if (!_isDownloading) {
+        return;
+      }
+
+      // update download progress
+      _progress = stop;
+      notifyListeners();
+    }
+
+    // final delay
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    if (!_isDownloading) {
+      return;
+    }
+
+    _downloadStatus = DownloadStatus.downloaded;
+    _isDownloading = false;
+    notifyListeners();
   }
 }
