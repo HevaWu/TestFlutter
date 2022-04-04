@@ -68,16 +68,28 @@ class DownloadButton extends StatelessWidget {
           transitionDuration: transitionDuration,
         ),
         Positioned.fill(
-            child: AnimatedOpacity(
-          duration: transitionDuration,
-          opacity: _isDownloading || _isFetching ? 1.0 : 0.0,
-          curve: Curves.ease,
-          child: ProgressIndicatorWidget(
-            downloadProgress: downloadProgress,
-            isDownloading: _isDownloading,
-            isFetching: _isFetching,
+          child: AnimatedOpacity(
+            duration: transitionDuration,
+            opacity: _isDownloading || _isFetching ? 1.0 : 0.0,
+            curve: Curves.ease,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                ProgressIndicatorWidget(
+                  downloadProgress: downloadProgress,
+                  isDownloading: _isDownloading,
+                  isFetching: _isFetching,
+                ),
+                if (_isDownloading)
+                  const Icon(
+                    Icons.stop,
+                    size: 14.0,
+                    color: CupertinoColors.activeBlue,
+                  ),
+              ],
+            ),
           ),
-        ))
+        ),
       ],
     ));
   }
