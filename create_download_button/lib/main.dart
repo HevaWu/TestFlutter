@@ -42,12 +42,14 @@ class DownloadButton extends StatelessWidget {
   const DownloadButton({
     Key? key,
     required this.status,
+    this.downloadProgress = 0.0,
     this.transitionDuration = const Duration(
       microseconds: 500,
     ),
   }) : super(key: key);
 
   final DownloadStatus status;
+  final double downloadProgress;
   final Duration transitionDuration;
 
   bool get _isDownloading => status == DownloadStatus.downloading;
@@ -56,11 +58,64 @@ class DownloadButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ButtonShapeWidget(
-      isDownloading: _isDownloading,
-      isDownloaded: _isDownloaded,
-      isFetching: _isFetching,
-      transitionDuration: transitionDuration,
+    return GestureDetector(
+        child: Stack(
+      children: [
+        ButtonShapeWidget(
+          isDownloading: _isDownloading,
+          isDownloaded: _isDownloaded,
+          isFetching: _isFetching,
+          transitionDuration: transitionDuration,
+        ),
+        Positioned.fill(
+            child: AnimatedOpacity(
+          duration: transitionDuration,
+          opacity: _isDownloading || _isFetching ? 1.0 : 0.0,
+          curve: Curves.ease,
+          child: ProgressIndicatorWidget(
+            downloadProgress: downloadProgress,
+            isDownloading: _isDownloading,
+            isFetching: _isFetching,
+          ),
+        ))
+      ],
+    ));
+  }
+}
+
+@immutable
+class ProgressIndicatorWidget extends StatelessWidget {
+  const ProgressIndicatorWidget({
+    Key? key,
+    required this.downloadProgress,
+    required this.isDownloading,
+    required this.isFetching,
+  }) : super(key: key);
+
+  final double downloadProgress;
+  final bool isDownloading;
+  final bool isFetching;
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: downloadProgress),
+        duration: const Duration(milliseconds: 200),
+        builder: (context, progress, child) {
+          return CircularProgressIndicator(
+            backgroundColor: isDownloading
+                ? CupertinoColors.lightBackgroundGray
+                : Colors.white.withOpacity(0.0),
+            valueColor: AlwaysStoppedAnimation(isFetching
+                ? CupertinoColors.lightBackgroundGray
+                : CupertinoColors.activeBlue),
+            strokeWidth: 2,
+            value: isFetching ? null : progress,
+          );
+        },
+      ),
     );
   }
 }
