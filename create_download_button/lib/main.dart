@@ -29,6 +29,31 @@ class MyApp extends StatelessWidget {
   }
 }
 
+enum DownloadStatus {
+  notDownloaded,
+  fetchingDownload,
+  downloading,
+  downloaded,
+}
+
+class DownloadButton extends StatelessWidget {
+  const DownloadButton({
+    Key? key,
+    required this.status,
+    this.transitionDuration = const Duration(
+      microseconds: 500,
+    ),
+  }) : super(key: key);
+
+  final DownloadStatus status;
+  final Duration transitionDuration;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
