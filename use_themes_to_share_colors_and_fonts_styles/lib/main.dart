@@ -43,6 +43,13 @@ class MyHomePage extends StatelessWidget {
           style: Theme.of(context).textTheme.headline6,
         ),
       )),
+      floatingActionButton: Theme(
+        data: ThemeData(splashColor: Colors.yellow),
+        child: FloatingActionButton(
+          onPressed: () {},
+          child: const Icon(Icons.add),
+        ),
+      ),
     );
   }
 }
