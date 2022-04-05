@@ -13,26 +13,26 @@ const routeDeviceSetupSelectDevicePage = 'select_device';
 const routeDeviceSetupConnectingPage = 'connecting';
 const routeDeviceSetupFinishedPage = 'finished';
 
-onGenerateRoute: (settings) {
-  late Widget page;
-  if (settings.name == routeHome) {
-    page = const HomeScreen();
-  } else if (settings.name == routeSettings) {
-    page = const SettingsScreen();
-  } else if (settings.name!.startWith(routePrefixDeviceSetup)) {
-    final subRoute = settings.name!.substring(routePrefixDeviceSetup.length);
-    page = SetupFlow(setupPageRoute: subRoute,);
-  } else {
-    throw Exception('Unknown route: ${settings.name}');
-  }
+// onGenerateRoute: (settings) {
+//   late Widget page;
+//   if (settings.name == routeHome) {
+//     page = const HomeScreen();
+//   } else if (settings.name == routeSettings) {
+//     page = const SettingsScreen();
+//   } else if (settings.name!.startWith(routePrefixDeviceSetup)) {
+//     final subRoute = settings.name!.substring(routePrefixDeviceSetup.length);
+//     page = SetupFlow(setupPageRoute: subRoute,);
+//   } else {
+//     throw Exception('Unknown route: ${settings.name}');
+//   }
 
-  return MaterialPageRoute<dynamic>(builder: (context) {
-    return page;
-  }, settings: settings);
-}
+//   return MaterialPageRoute<dynamic>(builder: (context) {
+//     return page;
+//   }, settings: settings);
+// }
 
 class SetupFlow extends StatefulWidget {
-  const SetupFlow({ Key? key, required this.setupPageRoute }) : super(key: key);
+  const SetupFlow({Key? key, required this.setupPageRoute}) : super(key: key);
 
   final String setupPageRoute;
 
@@ -43,14 +43,53 @@ class SetupFlow extends StatefulWidget {
 class _SetupFlowState extends State<SetupFlow> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildFlowAppBar(),
-      body: const SizedBox(),
-    );
+    return WillPopScope(
+        child: Scaffold(
+          appBar: _buildFlowAppBar(),
+          body: const SizedBox(),
+        ),
+        onWillPop: _isExitDesired);
   }
 
   PreferredSizeWidget _buildFlowAppBar() {
-    return AppBar(title: const Text('Bulb Setup'),);
+    return AppBar(
+      leading: IconButton(
+        onPressed: _onExitPressed,
+        icon: const Icon(Icons.chevron_left),
+      ),
+      title: const Text('Bulb Setup'),
+    );
+  }
+
+  void _onExitPressed() {
+    Navigator.of(context).pop();
+  }
+
+  Future<bool> _isExitDesired() async {
+    return await showDialog<bool>(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Are you sure?'),
+                content: const Text(
+                    'If you exit device setup, your progress will be lost.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    child: const Text('Leave'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: const Text('Stay'),
+                  ),
+                ],
+              );
+            }) ??
+        false;
   }
 }
 
