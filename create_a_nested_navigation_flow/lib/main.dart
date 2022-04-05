@@ -4,6 +4,56 @@ void main() {
   runApp(const MyApp());
 }
 
+const routeHome = '/';
+const routeSettings = '/settings';
+const routePrefixDeviceSetup = '/setup/';
+const routeDeviceSetupStart = '/setup/$routeDeviceSetupStartPage';
+const routeDeviceSetupStartPage = 'find_devices';
+const routeDeviceSetupSelectDevicePage = 'select_device';
+const routeDeviceSetupConnectingPage = 'connecting';
+const routeDeviceSetupFinishedPage = 'finished';
+
+onGenerateRoute: (settings) {
+  late Widget page;
+  if (settings.name == routeHome) {
+    page = const HomeScreen();
+  } else if (settings.name == routeSettings) {
+    page = const SettingsScreen();
+  } else if (settings.name!.startWith(routePrefixDeviceSetup)) {
+    final subRoute = settings.name!.substring(routePrefixDeviceSetup.length);
+    page = SetupFlow(setupPageRoute: subRoute,);
+  } else {
+    throw Exception('Unknown route: ${settings.name}');
+  }
+
+  return MaterialPageRoute<dynamic>(builder: (context) {
+    return page;
+  }, settings: settings);
+}
+
+class SetupFlow extends StatefulWidget {
+  const SetupFlow({ Key? key, required this.setupPageRoute }) : super(key: key);
+
+  final String setupPageRoute;
+
+  @override
+  State<SetupFlow> createState() => _SetupFlowState();
+}
+
+class _SetupFlowState extends State<SetupFlow> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: _buildFlowAppBar(),
+      body: const SizedBox(),
+    );
+  }
+
+  PreferredSizeWidget _buildFlowAppBar() {
+    return AppBar(title: const Text('Bulb Setup'),);
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
