@@ -420,3 +420,12 @@ class _SetupFlowState extends State<SetupFlow> {
         false;
   }
 }
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
