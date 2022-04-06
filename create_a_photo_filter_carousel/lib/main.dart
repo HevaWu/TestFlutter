@@ -101,9 +101,39 @@ class _FilterSelectorState extends State<FilterSelector> {
             child: AnimatedBuilder(
               animation: _controller,
               builder: (context, child) {
-                return FilterItem(
-                  color: itemColor(index),
-                  onFilterSelected: () {},
+                if (!_controller.hasClients ||
+                    !_controller.position.hasContentDimensions) {
+                  // PageController isn't connected to PageView widget
+                  return const SizedBox();
+                }
+
+                final selectedIndex = _controller.page!.roundToDouble();
+                // fractional amount that filter is dragged, ex: 0.25 when filter dragged 25%
+                final pageScrollAmount = _controller.page! - selectedIndex;
+
+                // page diff of a filter before it moves off screen
+                const maxScrollDistance = _filterPerScreen / 2;
+
+                // page diff of this filter from currently selected item
+                final pageDistanceFromSelected =
+                    (selectedIndex - index + pageScrollAmount).abs();
+
+                // distance of this filter from center as a percentage
+                final percentFromCenter =
+                    1.0 - pageDistanceFromSelected / maxScrollDistance;
+
+                final itemScale = 0.5 + (percentFromCenter * 0.5);
+                final opacity = 0.25 + (percentFromCenter * 0.75);
+
+                return Transform.scale(
+                  scale: itemScale,
+                  child: Opacity(
+                    opacity: opacity,
+                    child: FilterItem(
+                      color: itemColor(index),
+                      onFilterSelected: () {},
+                    ),
+                  ),
                 );
               },
             ),
