@@ -4,6 +4,84 @@ void main() {
   runApp(const MyApp());
 }
 
+// put FilterSelector on top of the photo, at the bottom and centered
+// Stack(children: [
+//   Positioned.fill(child: _buldPhotoWithFilter(),),
+//   const Positioned(left: 0.0, right: 0.0, bottom: 0.0, child: FilterSelector(),)
+// ]),
+
+@immutable
+class FilterSelector extends StatefulWidget {
+  const FilterSelector({
+    Key? key,
+    this.padding = const EdgeInsets.symmetric(vertical: 24.0),
+  }) : super(key: key);
+
+  final EdgeInsets padding;
+
+  @override
+  State<FilterSelector> createState() => _FilterSelectorState();
+}
+
+class _FilterSelectorState extends State<FilterSelector> {
+  static const _filterPerScreen = 5;
+  static const _viewportFractionPerItem = 1.0 / _filterPerScreen;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: ((context, constraints) {
+      final itemSize = constraints.maxWidth * _viewportFractionPerItem;
+
+      return Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          _buildShadowGradient(itemSize),
+          _buildSelectionRing(itemSize),
+        ],
+      );
+    }));
+  }
+
+  Widget _buildShadowGradient(double itemSize) {
+    return SizedBox(
+      height: itemSize * 2 + widget.padding.vertical,
+      child: const DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Colors.black,
+            ],
+          ),
+        ),
+        child: SizedBox.expand(),
+      ),
+    );
+  }
+
+  Widget _buildSelectionRing(double itemSize) {
+    return IgnorePointer(
+      child: Padding(
+        padding: widget.padding,
+        child: SizedBox(
+          width: itemSize,
+          height: itemSize,
+          child: const DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.fromBorderSide(
+                BorderSide(width: 6.0, color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
