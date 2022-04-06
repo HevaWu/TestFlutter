@@ -14,9 +14,11 @@ void main() {
 class FilterSelector extends StatefulWidget {
   const FilterSelector({
     Key? key,
+    required this.filters,
     this.padding = const EdgeInsets.symmetric(vertical: 24.0),
   }) : super(key: key);
 
+  final List<Color> filters;
   final EdgeInsets padding;
 
   @override
@@ -36,6 +38,7 @@ class _FilterSelectorState extends State<FilterSelector> {
         alignment: Alignment.bottomCenter,
         children: [
           _buildShadowGradient(itemSize),
+          _buildCarousel(itemSize),
           _buildSelectionRing(itemSize),
         ],
       );
@@ -57,6 +60,26 @@ class _FilterSelectorState extends State<FilterSelector> {
           ),
         ),
         child: SizedBox.expand(),
+      ),
+    );
+  }
+
+  Color itemColor(int index) => widget.filters[index % widget.filters.length];
+
+  Widget _buildCarousel(double itemSize) {
+    return Container(
+      height: itemSize,
+      margin: widget.padding,
+      child: PageView.builder(
+        itemCount: widget.filters.length,
+        itemBuilder: (context, index) {
+          return Center(
+            child: FilterItem(
+              color: itemColor(index),
+              onFilterSelected: () {},
+            ),
+          );
+        },
       ),
     );
   }
