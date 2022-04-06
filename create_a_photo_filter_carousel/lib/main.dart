@@ -131,7 +131,7 @@ class _FilterSelectorState extends State<FilterSelector> {
                     opacity: opacity,
                     child: FilterItem(
                       color: itemColor(index),
-                      onFilterSelected: () {},
+                      onFilterSelected: () => _onFilterTapped(index),
                     ),
                   ),
                 );
@@ -140,6 +140,14 @@ class _FilterSelectorState extends State<FilterSelector> {
           );
         },
       ),
+    );
+  }
+
+  void _onFilterTapped(int index) {
+    _controller.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.ease,
     );
   }
 
