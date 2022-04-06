@@ -97,9 +97,15 @@ class _FilterSelectorState extends State<FilterSelector> {
         itemCount: widget.filters.length,
         itemBuilder: (context, index) {
           return Center(
-            child: FilterItem(
-              color: itemColor(index),
-              onFilterSelected: () {},
+            // change visual properties of each FilterItem as scroll position changes
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return FilterItem(
+                  color: itemColor(index),
+                  onFilterSelected: () {},
+                );
+              },
             ),
           );
         },
