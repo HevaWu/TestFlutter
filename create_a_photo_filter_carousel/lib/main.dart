@@ -15,10 +15,12 @@ class FilterSelector extends StatefulWidget {
   const FilterSelector({
     Key? key,
     required this.filters,
+    required this.onFilterChanged,
     this.padding = const EdgeInsets.symmetric(vertical: 24.0),
   }) : super(key: key);
 
   final List<Color> filters;
+  final void Function(Color selectedColor) onFilterChanged;
   final EdgeInsets padding;
 
   @override
@@ -28,6 +30,26 @@ class FilterSelector extends StatefulWidget {
 class _FilterSelectorState extends State<FilterSelector> {
   static const _filterPerScreen = 5;
   static const _viewportFractionPerItem = 1.0 / _filterPerScreen;
+
+  late final PageController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = PageController(viewportFraction: _viewportFractionPerItem);
+    _controller.addListener(_onPageChanged);
+  }
+
+  void _onPageChanged() {
+    final page = (_controller.page ?? 0).round();
+    widget.onFilterChanged(widget.filters[page]);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +93,7 @@ class _FilterSelectorState extends State<FilterSelector> {
       height: itemSize,
       margin: widget.padding,
       child: PageView.builder(
+        controller: _controller,
         itemCount: widget.filters.length,
         itemBuilder: (context, index) {
           return Center(
