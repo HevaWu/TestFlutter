@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 void main() {
   runApp(const MyApp());
@@ -6,7 +7,9 @@ void main() {
 
 @immutable
 class LocationListItem extends StatelessWidget {
-  const LocationListItem({
+  final GlobalKey _backgroundImageKey = GlobalKey();
+
+  LocationListItem({
     Key? key,
     required this.imageUrl,
     required this.name,
@@ -36,9 +39,19 @@ class LocationListItem extends StatelessWidget {
   }
 
   Widget _buildParallaxBackground(BuildContext context) {
-    return Image.network(
-      imageUrl,
-      fit: BoxFit.cover,
+    return Flow(
+      delegate: ParallaxFlowDelegate(
+        scrollable: Scrollable.of(context)!,
+        listItemContext: context,
+        backgroundImageKey: _backgroundImageKey,
+      ),
+      children: [
+        Image.network(
+          imageUrl,
+          key: _backgroundImageKey,
+          fit: BoxFit.cover,
+        ),
+      ],
     );
   }
 
@@ -86,6 +99,67 @@ class LocationListItem extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class ParallaxFlowDelegate extends FlowDelegate {
+  ParallaxFlowDelegate({
+    required this.scrollable,
+    required this.listItemContext,
+    required this.backgroundImageKey,
+  }) : super(repaint: scrollable.position);
+
+  final ScrollableState scrollable;
+  final BuildContext listItemContext;
+  final GlobalKey backgroundImageKey;
+
+  @override
+  BoxConstraints getConstraintsForChild(int i, BoxConstraints constraints) {
+    // keep background image width same as Flow widget
+    return BoxConstraints.tightFor(width: constraints.maxWidth);
+  }
+
+  @override
+  void paintChildren(FlowPaintingContext context) {
+    // calculate position of this list item within viewport
+    final scrollableBox = scrollable.context.findRenderObject() as RenderBox;
+    final listItemBox = listItemContext.findRenderObject() as RenderBox;
+    final listItemOffset = listItemBox.localToGlobal(
+      listItemBox.size.centerLeft(Offset.zero),
+      ancestor: scrollableBox,
+    );
+
+    // determine percent position of this list item within scrollable area
+    // list item at top of scrollable area produce 0%
+    // list item at bottom produce 100%
+    // at 0%, want Alignment(0, -1), at 100%, want Alignment(0, 1)
+    final viewportDimension = scrollable.position.viewportDimension;
+    final scrollFraction =
+        (listItemOffset.dy / viewportDimension).clamp(0.0, 1.0);
+
+    // calculate vertical alignment of background based on scroll percent
+    final verticalAlignment = Alignment(0.0, scrollFraction * 2 - 1);
+
+    // determine where background image should be positioned
+    final backgroundSize =
+        (backgroundImageKey.currentContext!.findRenderObject() as RenderBox)
+            .size;
+    final listItemSize = context.size;
+    final chlidRect =
+        verticalAlignment.inscribe(backgroundSize, Offset.zero & listItemSize);
+
+    context.paintChild(
+      0,
+      transform:
+          Transform.translate(offset: Offset(0.0, chlidRect.top)).transform,
+    );
+  }
+
+  @override
+  bool shouldRepaint(ParallaxFlowDelegate oldDelegate) {
+    return scrollable != oldDelegate.scrollable ||
+        listItemContext != oldDelegate.listItemContext ||
+        backgroundImageKey != oldDelegate.backgroundImageKey;
   }
 }
 
